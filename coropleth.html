@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+   <meta charset="UTF-8">
+   <meta http-equiv="X-UA-Compatible" content="IE=edge">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <title>Real GDP Growth Map with Line Chart</title>
+   <!-- Include Plotly.js -->
+   <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+   <!-- Include D3.js -->
+   <script src="https://d3js.org/d3.v6.min.js"></script>
+   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.js"></script>
+   <style>
+       /* Add CSS styles to make the map container smaller and move it to the left */
+       #gdpgrowth {
+           width: 800px; /* Set your desired width */
+           height: 800px; /* Set your desired height */
+           margin-left: 100px; /* Add some margin to move it to the left */
+       }
+
+
+       /* Style the range slider container */
+       #yearSliderContainer {
+           width: 100%;
+           margin-bottom: 20px;
+           position: relative;
+       }
+
+
+       /* Style the range slider */
+       #yearSlider {
+           width: 100%;
+       }
+
+
+       /* Style the slider labels */
+       .slider-label {
+           position: absolute;
+           display: inline-block;
+           transform: translateX(-50%);
+       }
+   </style>
+</head>
+<body>
+   <div id="yearSliderContainer">
+       <label for="yearSlider">Select a Year:</label>
+       <input type="range" id="yearSlider" min="1980" max="2022" step="1" value="1980" oninput="updateMap(this.value); updateLineChart(this.value);">
+       <div class="slider-label" style="left: 0%;">1980</div>
+       <div class="slider-label" style="left: 25%;">1995</div>
+       <div class="slider-label" style="left: 50%;">2005</div>
+       <div class="slider-label" style="left: 75%;">2015</div>
+       <div class="slider-label" style="left: 100%;">2022</div>
+   </div>
+   <div id="gdpgrowth"></div>
+   <!-- <div id="lineChart"></div> -->
+   <canvas id="myChart" style="width:100%;max-width:600px"></canvas>
+   <script>
+       let allXValues = [];
+       let allYValues = [];
+
+
+       var gdpData; // Variable to store the loaded CSV data
+       readCSV();
+       // Load the CSV data
+       d3.csv('gdp.csv').then(function(data) {
+           gdpData = data;
+           updateMap('1980'); // Initialize the map with default year 1980
+       }).catch(function(error) {
+           console.error('Error loading CSV data:', error);
+       });
+       let myChart;
+       function updateLineChart(sliderValue) {
+               console.log('heelo',sliderValue)
+               myChart.data.labels = allXValues.slice(0, sliderValue - 1960 + 1);
+               myChart.data.datasets[0].data = allYValues.slice(0, sliderValue - 1960 + 1);
+               myChart.update();
+       }
+       function updateMap(selectedYear) {
+           console.log("selectedYearUpdateMAP", selectedYear);
+           updateLineChart(selectedYear);
+           var filteredData = gdpData.map(function(d) {
+               return {
+                   Country: d['Real GDP growth (Annual percent change)'],
+                   GDPGrowth: parseFloat(d[selectedYear])
+               };
+           }).filter(function(d) {
+               // Filter out entries that are NaN
+               return !isNaN(d.GDPGrowth);
+           });
+          
+           var customColorScale = [
+               [0, 'rgb(255, 128, 128)'], // Light pastel red for values at 0 (bottom 25%)
+               [0.25, 'rgb(255, 128, 128)'], // Light pastel red for values around 0.25 (bottom 25%)
+               [0.5, 'rgb(230, 230, 250)'], // Pastel  for values at 0.5 (middle 50%)
+               [0.75, 'rgb(173, 216, 230)'], // Pastel blue for values around 0.75 (middle 50%)
+               [1, 'rgb(144, 238, 144)'] // Light pastel green for values at 1 (top 25%)
+           ];
+
+
+           var data = [{
+               type: 'choropleth',
+               locationmode: 'country names',
+               locations: filteredData.map(d => d.Country),
+               z: filteredData.map(d => d.GDPGrowth),
+               text: filteredData.map(d => d.Country),
+               colorscale: customColorScale,
+               colorbar:{
+                   title: 'GDP Growth'
+               }
+           }];
+
+
+           var layout = {
+               title: 'Real GDP Growth in ' + selectedYear,
+               geo: {
+                   projection: {
+                       type: 'mercator'
+                   }
+               }
+           };
+
+
+           // Update the map
+           Plotly.newPlot('gdpgrowth', data, layout);
+
+
+           // Add an event listener for plotly_click event
+           document.getElementById('gdpgrowth').on('plotly_click', function(eventData) {
+               if (eventData.points.length > 0) {
+                   // Extract the clicked country name
+                   const clickedCountry = eventData.points[0].location;
+                  
+                   // Perform your desired action with the clicked country name
+                   alert('You clicked on: ' + clickedCountry); // You can replace this with your own action
+               }
+           });
+       }
+       function readCSV() {
+           fetch('line.csv')
+               .then(response => response.text())
+               .then(data => {
+                   const lines = data.split('\n');
+                   for (let i = 2; i < lines.length - 1; i++) {
+                       const values = lines[i].split(',');
+                       const year = parseInt(values[0]);
+                       const perCapita = parseFloat(values[2]);
+                       allXValues.push(year);
+                       allYValues.push(perCapita);
+
+
+                       // Console logs for debugging
+                       console.log("CSV Data:", data);           // Log the entire CSV data
+                       console.log("Lines:", lines);             // Log the array of lines
+                       console.log("Values:", values);           // Log the values for each line
+                       console.log("Year:", year);               // Log the parsed year
+                       console.log("Per Capita:", perCapita);    // Log the parsed Per Capita GDP
+                       console.log("allYValues", allYValues);
+                   }
+                   createLineChart();
+               });
+       }
+
+
+       // Function to create the line chart
+       function createLineChart() {
+           myChart = new Chart("myChart", {
+               type: "line",
+               data: {
+                   labels: allXValues,
+                   datasets: [{
+                       fill: false,
+                       lineTension: 0,
+                       backgroundColor: "rgba(0,0,255,1.0)",
+                       borderColor: "rgba(0,0,255,0.1)",
+                       data: allYValues
+                   }]
+               },
+               options: {
+                   legend: { display: false },
+                   scales: {
+                       yAxes: [{ ticks: { min: Math.min(...allYValues), max: Math.max(...allYValues) } }],
+                       // yAxes: [{ ticks: { min: 0, max: 13000 } }],
+                       xAxes: [{ ticks: { stepSize: 1 } }],
+                   }
+               }
+           });
+
+
+           // Function to update the chart according to the slider
+
+
+
+
+           // Initialize the slider
+           // const slider = document.getElementById('myRange');
+           // slider.oninput = function () {
+           //     updateLineChart(parseInt(this.value));
+           // }
+
+
+           // Initialize the chart with the full range
+           // updateLineChart(yearSlider);
+       }
+
+
+       // Read and parse CSV file when the page loads
+
+
+   </script>
+</body>
+</html>
