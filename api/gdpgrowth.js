@@ -52,6 +52,7 @@ Promise.all([mapFetch, countryFetch])
             }
         );
         createLineChart(allValues, "1980");
+
     })
     .catch(error => {
         // Handle errors from either API call
@@ -62,6 +63,7 @@ Promise.all([mapFetch, countryFetch])
 
 function updateMap(selectedYear) {
     console.log("selectedYearUpdateMAP", selectedYear);
+    updateTopCountriesTable(selectedYear);
     //updateLineChart(selectedYear);  
     var customColorScale = [
         [0, 'rgb(255, 128, 128)'], // Light pastel red for values at 0 (bottom 25%)
@@ -98,14 +100,16 @@ function updateMap(selectedYear) {
 
 
     var layout = {
-        title: 'Real GDP Growth in ' + selectedYear,
-        geo: {
-            projection: {
-                type: 'mercator'
-            }
+        autosize: true, // Enable autosize to fill the container
+        margin: {
+          l: 50,
+          r: 50,
+          b: 100,
+          t: 100,
+          pad: 4
         }
-    };
-
+      };
+    
 
     // Update the map
     Plotly.newPlot('gdpgrowth', data, layout);    
@@ -201,3 +205,69 @@ function updateLineChart(sliderValue) {
     chart.data.datasets[0].data = Object.values(allValues).slice(0, sliderValue - 1980 + 1);
     chart.update();
 }
+
+function updateTopCountriesTable(selectedYear) {
+    // Assuming mapData is an object where each key is a country code and each value is an object with years as keys
+    let topCountries = Object.entries(mapData)
+        .map(([countryCode, data]) => {
+            return {
+                code: countryCode,
+                growth: data[selectedYear] || 0 // Assuming 0 if no data for that year
+            };
+        })
+        .filter(entry => country[entry.code]) // Ensure the country is in the country list
+        .sort((a, b) => b.growth - a.growth) // Sort by growth in descending order
+        .slice(0, 5) // Take top 5
+        .map(entry => ({
+            name: country[entry.code].label,
+            growth: entry.growth
+        }));
+
+    // Update HTML Table
+    let tableBody = document.getElementById('topCountriesTableBody');
+    tableBody.innerHTML = ''; // Clear existing rows
+    topCountries.forEach(country => {
+        let row = tableBody.insertRow();
+        let nameCell = row.insertCell(0);
+        let growthCell = row.insertCell(1);
+        nameCell.innerHTML = country.name;
+        growthCell.innerHTML = country.growth.toFixed(2) + '%'; // Format the growth rate
+    });
+    function updateBottomCountriesTable(selectedYear) {
+        let bottomCountries = Object.entries(mapData)
+            .map(([countryCode, data]) => {
+                return {
+                    code: countryCode,
+                    growth: data[selectedYear] || 0 // Assuming 0 if no data for that year
+                };
+            })
+            .filter(entry => country[entry.code]) // Ensure the country is in the country list
+            .sort((a, b) => a.growth - b.growth) // Sort by growth in ascending order
+            .slice(0, 5) // Take bottom 5
+            .map(entry => ({
+                name: country[entry.code].label,
+                growth: entry.growth
+            }));
+    
+        // Update HTML Table for Bottom Countries
+        let bottomTableBody = document.getElementById('bottomCountriesTableBody');
+        bottomTableBody.innerHTML = ''; // Clear existing rows
+        bottomCountries.forEach(country => {
+            let row = bottomTableBody.insertRow();
+            let nameCell = row.insertCell(0);
+            let growthCell = row.insertCell(1);
+            nameCell.innerHTML = country.name;
+            growthCell.innerHTML = country.growth.toFixed(2) + '%'; // Format the growth rate
+        });
+    }
+// Add event listener for slider change
+document.getElementById('yearSlider').addEventListener('change', function(event) {
+    let selectedYear = event.target.value;
+    updateMap(selectedYear);
+    updateLineChart(selectedYear);
+    updateTopCountriesTable(selectedYear);
+    updateBottomCountriesTable(selectedYear);
+});
+}
+
+

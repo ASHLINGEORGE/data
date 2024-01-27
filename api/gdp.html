@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+   <meta charset="UTF-8">
+   <meta http-equiv="X-UA-Compatible" content="IE=edge">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <title>Real GDP Growth Map with Line Chart</title>
+   <!-- Include Plotly.js -->
+   <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+   <!-- Include D3.js -->
+   <script src="https://d3js.org/d3.v6.min.js"></script>
+   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+   <style>
+        .container {
+            max-width: 1200px;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        #myChartContainer {
+            width: 100%; /* Full width of the container */
+            height: auto; /* Height will be determined by the content */
+            margin-bottom: 20px;
+        }
+
+        #gdpgrowth {
+            width: 100%;
+            height: 800px; /* Adjust the height as needed */
+            margin: 0 20px 20px 0; /* Adjust the margin values as needed */
+        }
+
+/* Rest of your CSS remains the same... */
+        #yearSliderContainer {
+            width: 100%;
+            position: relative;
+            padding: 0 15px;
+            margin-bottom: 20px;
+        }
+
+        #yearSlider {
+            width: calc(100% - 30px);
+            margin-top: 10px;
+        }
+
+        .slider-label {
+            position: absolute;
+            top: 50px;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+
+        /* Specific label positioning */
+        .slider-label:first-child { left: 0; transform: translateY(-50%); }
+        .slider-label:nth-child(2) { left: 25%; transform: translateX(-50%); }
+        .slider-label:nth-child(3) { left: 50%; transform: translateX(-50%); }
+        .slider-label:nth-child(4) { left: 75%; transform: translateX(-50%); }
+        .slider-label:last-child { left: 100%; transform: translateX(-100%); }
+
+        @media (max-width: 768px) {
+            .slider-label {
+                display: none; /* Hide labels on smaller screens */
+            }
+        }
+
+        #myChart {
+            width: 100% !important;
+            height: 100% !important; /* Make the chart fill the container */
+        }
+        
+
+        .colorbar {
+            margin-top: -10px; /* Adjust the negative value as needed */
+        }
+
+        .table-container {
+            position: absolute;
+            top: 150px; /* Adjust if needed to move the table down */
+            right: 10px;
+            width: 50%; /* Adjust width as needed */
+            z-index: 10; /* Keep the table above other elements */
+        }
+
+        #country-ranking {
+            width: 100%; /* Make the table fill its container */
+            border-collapse: collapse;
+            font-family: Arial, sans-serif;
+            font-size: 24px; /* Increased font size */
+            /* No fixed height set; will expand with content */
+        }
+
+        #country-ranking td {
+            padding: 20px; /* Larger padding to increase cell size */
+            /* Larger font size already set on the table */
+        }
+
+        #country-ranking .flag {
+            width: 50px; /* Larger flag size */
+            height: auto;
+            margin-right: 15px;
+            vertical-align: middle;
+        }
+
+        #country-ranking tr:nth-child(odd) {
+            background-color: #ebe1e1; /* Lighter shade for odd rows */
+        }
+
+        #country-ranking tr:nth-child(even) {
+            background-color: #d0f4f2; /* A different shade for even rows */
+        }
+
+        /* Optionally, if you want to specify a minimum height for rows */
+        #country-ranking tr {
+            min-height: 70px; /* Set a minimum height for each row */
+        }
+
+        #country-ranking td:nth-child(1) {
+            font-weight: bold;
+        }
+
+        #country-ranking td:nth-child(3) {
+            text-align: center;
+        }
+        /* Hide the table header */
+        #country-ranking thead {
+            display: none;
+        }
+        .table2-container {
+            position: absolute;
+            top: 1000px; /* Adjust if needed to move the table down */
+            right: 10px;
+            width: 50%; /* Adjust width as needed */
+            z-index: 10; /* Keep the table above other elements */
+        }
+
+        #country2-ranking {
+            width: 100%; /* Make the table fill its container */
+            border-collapse: collapse;
+            font-family: Arial, sans-serif;
+            font-size: 24px; /* Increased font size */
+            /* No fixed height set; will expand with content */
+        }
+
+        #country2-ranking td {
+            padding: 20px; /* Larger padding to increase cell size */
+            /* Larger font size already set on the table */
+        }
+
+        #country2-ranking .flag {
+            width: 50px; /* Larger flag size */
+            height: auto;
+            margin-right: 15px;
+            vertical-align: middle;
+        }
+
+        #country2-ranking tr:nth-child(odd) {
+            background-color: #ebe1e1; /* Lighter shade for odd rows */
+        }
+
+        #country2-ranking tr:nth-child(even) {
+            background-color: #d0f4f2; /* A different shade for even rows */
+        }
+
+        /* Optionally, if you want to specify a minimum height for rows */
+        #country2-ranking tr {
+            min-height: 70px; /* Set a minimum height for each row */
+        }
+
+        #country2-ranking td:nth-child(1) {
+            font-weight: bold;
+        }
+
+        #country2-ranking td:nth-child(3) {
+            text-align: center;
+        }
+        /* Hide the table header */
+        #country2-ranking thead {
+            display: none;
+        }
+   </style>
+</head>
+<body>
+    <div class="container">
+        <div id="gdpgrowth">
+            <!-- Map will be inserted here by your JavaScript code -->
+        </div>
+
+        <div id="yearSliderContainer">
+            <label for="yearSlider">Select a Year:</label>
+            <input type="range" id="yearSlider" min="1980" max="2022" step="1" value="1980" oninput="updateMap(this.value); updateLineChart(this.value);">
+            <div class="slider-label" style="left: 0%;">1980</div>
+            <div class="slider-label" style="left: 25%;">1995</div>
+            <div class="slider-label" style="left: 50%;">2005</div>
+            <div class="slider-label" style="left: 75%;">2015</div>
+            <div class="slider-label" style="left: 100%;">2022</div>
+        </div>
+
+        <div id="myChartContainer">
+            <canvas id="myChart"></canvas>
+        </div>
+        <!-- Table container -->
+        <div class="table-container">
+            <table id="country-ranking">
+                <thead>
+                    <tr>
+                        <th>Country</th>
+                        <th>GDP Growth</th>
+                    </tr>
+                </thead>
+                <tbody id="topCountriesTableBody">
+                    <!-- Rows will be added dynamically here -->
+                </tbody>
+            </table>
+        </div>
+        <div class="table2-container">
+            <table id="country2-ranking">
+                <thead>
+                    <tr>
+                        <th>Country</th>
+                        <th>GDP Growth</th>
+                    </tr>
+                </thead>
+                <tbody id="bottomCountriesTableBody">
+                    <!-- Rows will be added dynamically here -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <!-- Include your JavaScript files -->
+    <script src="gdpgrowth.js"></script>
+</body>
+</html>
