@@ -2,11 +2,10 @@
     width: 100%;
     height: 100%;
     display: inline-block;
-    margin-left: 5%;
 }
 
     .layer .map {
-        height: 550px;
+        height: 600px;
         display: inline-block;
     }
 

@@ -1,7 +1,17 @@
-var mapData, country;
+var mapData, country, flag;
 var allValues = {};
 var baseUrl;
 var mac = false;
+var missingFlags = {
+    "Cabo Verde": "CV",
+    "Lao P.D.R.": "LA",
+    "S\u00E3o Tom\u00E9 and Pr\u00EDncipe": "ST",
+    "T\u00FCrkiye, Republic of": "TR",
+    "Micronesia, Fed. States of": "FM",
+    "West Bank and Gaza": "PS",
+    "C\u00F4te d'Ivoire": "CI",
+    "Kyrgyz Republic": "KG"
+};
 if (navigator.platform.toLowerCase().startsWith('mac')) {
     baseUrl = "https://api.allorigins.win/get?url=";
     mac = true;
@@ -9,34 +19,43 @@ if (navigator.platform.toLowerCase().startsWith('mac')) {
     baseUrl = "https://corsproxy.io/?";
 }
 var countryFetch = fetch(baseUrl + encodeURIComponent('https://www.imf.org/external/datamapper/api/v1/countries'))
-.then(response=>{
-  // Check if the request was successful (status code 200)
-  if (!response.ok) {
-    throw new Error(`HTTP error! Status: ${response.status}`);
-  }  
-  // Parse the response as JSON
-  return response.json();
-});
-
+    .then(response => {
+        // Check if the request was successful (status code 200)
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        // Parse the response as JSON
+        return response.json();
+    });
 var mapFetch = fetch(baseUrl + encodeURIComponent('https://www.imf.org/external/datamapper/api/v1/NGDP_RPCH'))
-.then(response=>{
-  // Check if the request was successful (status code 200)
-  if (!response.ok) {
-    throw new Error(`HTTP error! Status: ${response.status}`);
-  }  
-  // Parse the response as JSON
-  return response.json();
-});
-
-Promise.all([mapFetch, countryFetch])
+    .then(response => {
+        // Check if the request was successful (status code 200)
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        // Parse the response as JSON
+        return response.json();
+    });
+var flag = fetch('https://gist.githubusercontent.com/DmytroLisitsyn/1c31186e5b66f1d6c52da6b5c70b12ad/raw/2bc71083a77106afec2ec37cf49d05ee54be1a22/country_dial_info.json')
+    .then(response => {
+        // Check if the request was successful (status code 200)
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        // Parse the response as JSON
+        return response.json();
+    });
+Promise.all([mapFetch, countryFetch, flag])
     .then(dataArray => {
         // Both API calls have completed successfully
         if (mac) {
             mapData = JSON.parse(dataArray[0].contents);
             country = JSON.parse(dataArray[1].contents);
+            flag = JSON.parse(dataArray[2].contents)
         } else {
             mapData = dataArray[0];
             country = dataArray[1];
+            flag = dataArray[2];
         }
         // Handle the Map data
         if (mapData == null || mapData.values == null || mapData.values.NGDP_RPCH == null) {
@@ -84,16 +103,16 @@ function updateMap(selectedYear) {
     ];
 
     var mapValue = Object.keys(mapData).map(
-                function(x){
-                    if (country[x]) {
-                        return{
-                            key: country[x].label,
-                            value: mapData[x][selectedYear]
-                            }
-                    }
-                }).filter(function(x) {
-                    return !(x == undefined || isNaN(x.value));
-                });
+        function (x) {
+            if (country[x]) {
+                return {
+                    key: country[x].label,
+                    value: mapData[x][selectedYear]
+                }
+            }
+        }).filter(function (x) {
+            return !(x == undefined || isNaN(x.value));
+        });
 
 
     var data = [{
@@ -103,7 +122,7 @@ function updateMap(selectedYear) {
         z: mapValue.map(d => d.value),
         text: mapValue.map(d => d.key),
         colorscale: customColorScale,
-        colorbar:{
+        colorbar: {
             title: 'GDP Growth'
         }
     }];
@@ -116,14 +135,14 @@ function updateMap(selectedYear) {
                 type: 'mercator'
             }
         },
-        width: 1000,
-        heigh: 1000,
-        innerHeight:1000
+        width: '1000px',
+        heigh: '1000px',
+        innerHeight: '1000px'
     };
 
 
     // Update the map
-    Plotly.newPlot('gdpgrowth', data, layout);    
+    Plotly.newPlot('gdpgrowth', data, layout);
 
     // Add an event listener for plotly_click event
     document.getElementById('gdpgrowth').on('plotly_click', function (eventData) {
@@ -132,7 +151,7 @@ function updateMap(selectedYear) {
             const clickedCountry = eventData.points[0].location;
             Object.keys(country).forEach(
                 function (x) {
-                    if (country[x].label == clickedCountry) {                        
+                    if (country[x].label == clickedCountry) {
                         createLineChart(allValues, selectedYear, clickedCountry, mapData[x])
                         return;
                     }
@@ -167,12 +186,12 @@ function createLineChart(allValues, year, country, countryValues) {
             },
             scales: {
                 y: [{
-                    type: 'linear', 
+                    type: 'linear',
                     display: true,
                     position: 'left',
                     id: 'y-axis-1',
                     grid: {
-                        drawOnChartArea: false, 
+                        drawOnChartArea: false,
                     },
                 }],
                 x: { ticks: { stepSize: 1 } },
@@ -189,7 +208,7 @@ function createLineChart(allValues, year, country, countryValues) {
                 }
             },
         },
-    }; 
+    };
 
     if (countryValues != null) {
         values.data.datasets.push({
@@ -215,14 +234,22 @@ function createLineChart(allValues, year, country, countryValues) {
 
 function updateCountriesTable(countryData, sort) {
     // Update HTML Table
-    let tableBody = document.getElementById(sort+'CountriesTableBody');
+    let tableBody = document.getElementById(sort + 'CountriesTableBody');
     tableBody.innerHTML = '';
+    flag.forEach(function (x) {
+        countryData.forEach(function (y) {
+            if (y.key.includes(x.name) || x.name.includes(y.key)) {
+                y["code"] = x.code;
+            }
+        });
+    });
     countryData.forEach(country => {
         let row = tableBody.insertRow();
         let nameCell = row.insertCell(0);
         let growthCell = row.insertCell(1);
         var img = document.createElement("img");
-        img.src = "https://flagsapi.com/BE/flat/64.png";
+        country.code = country.code ?? missingFlags[country.key];
+        img.src = "https://flagsapi.com/" + country.code + "/flat/64.png";
         img.alt = country.key;
         img.style.width = "25px"; // Set the width as needed
         nameCell.appendChild(img);
