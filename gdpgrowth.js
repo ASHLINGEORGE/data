@@ -136,14 +136,14 @@ function updateMap(selectedYear) {
         text: mapValue.map(d => d.key),
         colorscale: customColorScale,
         colorbar: {
-            y: 0.1, x: 1.1, yanchor: "bottom", len: .8, title: { text: "GDP Growth Scale", side: "right" },
+            y: 0.1, x: 1.2, yanchor: "bottom", len: .8, title: { text: "GDP Growth Scale", side: "right" },
             xanchor: "right"
         }
     }];
     
     var layout = {        
         mapbox: { style: "dark", center: { lon: -110, lat: 50 }, zoom: 1.5 },
-        width: 1100, height: 600, margin: { t: 0, b: 0 }
+        width: 900, height: 400, margin: { t: 0, b: 0 }
     };
     document.getElementById('header').innerHTML = 'Real GDP Growth in ' + selectedYear;
     // Update the map

@@ -17,33 +17,13 @@
     <div class="container">
         <div class="layer">
             <div id="gdpgrowth" class="map"></div>
-            <div class="top-bottom">
-                <div id="top" class="top">
-                    <table id="ranking-ascending">
-                        <thead>
-                            <tr>                               
-                                <th>Top 5 Countries</th>
-                                <th>GDP Growth</th>
-                            </tr>
-                        </thead>
-                        <tbody id="topCountriesTableBody">
-                            <!-- Rows will be added dynamically here -->
-                        </tbody>
-                    </table>
-                </div>
-                <div id="bottom" class="bottom">
-                    <table id="ranking-descending">
-                        <thead>
-                            <tr>                                
-                                <th>Bottom 5 Countries</th>
-                                <th>GDP Growth</th>
-                            </tr>
-                        </thead>
-                        <tbody id="bottomCountriesTableBody">
-                            <!-- Rows will be added dynamically here -->
-                        </tbody>
-                    </table>
-                </div>
+            <div id="top" class="top">
+                <h2>Top 5 Countries</h2>
+                <table id="ranking-ascending">
+                    <tbody id="topCountriesTableBody">
+                        <!-- Rows will be added dynamically here -->
+                    </tbody>
+                </table>
             </div>
         </div>
         <div id="yearSliderContainer" class="slider">
@@ -55,8 +35,18 @@
             <div class="slider-label" style="left: 75%;">2015</div>
             <div class="slider-label" style="left: 100%;">2022</div>
         </div>
-        <div class="chart">
-            <canvas id="myChart" style="width:100%;max-width:600px"></canvas>
+        <div class="chartcontainer">
+            <div class="chart">
+                <canvas id="myChart" style="width:100%;max-width:600px"></canvas>
+            </div>
+            <div id="bottom" class="bottom">
+                <h2>Bottom 5 Countries</h2>
+                <table id="ranking-descending">
+                    <tbody id="bottomCountriesTableBody">
+                        <!-- Rows will be added dynamically here -->
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
     <script src="gdpgrowth.js"></script>
