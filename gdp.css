@@ -1,5 +1,57 @@
-#yearSliderContainer {
+.layer {
+    width: 100%;
+    height: 100%;
+    display: inline-block;
+    margin-left: 5%;
+}
+
+    .layer .map {
+        height: 100%;
+        display: inline-block;
+    }
+
+    .layer .top-bottom {
+        position: absolute;        
+        width: 29%;
+        display: inline-block;
+        margin-left: 20px;
+    }
+
+        .layer .top-bottom table {
+            text-align: left;
+        }
+
+        .layer .top-bottom .bottom {
+            position: relative;
+            margin-top: 10%;
+        }
+
+        .layer .top-bottom th,
+        .layer .top-bottom td {
+            width: 80%;
+            padding: 5px;
+        }
+
+        .layer .top-bottom tr td:first-child {
+            display: flex;
+        }
+
+        .layer .top-bottom span {
+            margin: 3px 0 0 20px;
+        }
+
+.container .slider {
     width: 100%;
     margin-bottom: 20px;
     position: relative;
 }
+
+    .container .slider .yearSlider {
+        width: 100%;
+    }
+
+    .container .slider .slider-label {
+        position: absolute;
+        display: inline-block;
+        transform: translateX(-50%);
+    }

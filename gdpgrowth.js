@@ -1,6 +1,14 @@
 var mapData, country;
 var allValues = {};
-var countryFetch = fetch('https://api.allorigins.win/get?url=' + encodeURIComponent('https://www.imf.org/external/datamapper/api/v1/countries'))
+var baseUrl;
+var mac = false;
+if (navigator.platform.toLowerCase().startsWith('mac')) {
+    baseUrl = "https://api.allorigins.win/get?url=";
+    mac = true;
+} else {
+    baseUrl = "https://corsproxy.io/?";
+}
+var countryFetch = fetch(baseUrl + encodeURIComponent('https://www.imf.org/external/datamapper/api/v1/countries'))
 .then(response=>{
   // Check if the request was successful (status code 200)
   if (!response.ok) {
@@ -10,7 +18,7 @@ var countryFetch = fetch('https://api.allorigins.win/get?url=' + encodeURICompon
   return response.json();
 });
 
-var mapFetch = fetch('https://api.allorigins.win/get?url=' + encodeURIComponent('https://www.imf.org/external/datamapper/api/v1/NGDP_RPCH'))
+var mapFetch = fetch(baseUrl + encodeURIComponent('https://www.imf.org/external/datamapper/api/v1/NGDP_RPCH'))
 .then(response=>{
   // Check if the request was successful (status code 200)
   if (!response.ok) {
@@ -23,12 +31,16 @@ var mapFetch = fetch('https://api.allorigins.win/get?url=' + encodeURIComponent(
 Promise.all([mapFetch, countryFetch])
     .then(dataArray => {
         // Both API calls have completed successfully
-        mapData = JSON.parse(dataArray[0].contents);
-        country = JSON.parse(dataArray[1].contents);
-
+        if (mac) {
+            mapData = JSON.parse(dataArray[0].contents);
+            country = JSON.parse(dataArray[1].contents);
+        } else {
+            mapData = dataArray[0];
+            country = dataArray[1];
+        }
         // Handle the Map data
         if (mapData == null || mapData.values == null || mapData.values.NGDP_RPCH == null) {
-            throw new Error(`Data errer`);
+            throw new Error(`Data error`);
         }
         mapData = mapData.values.NGDP_RPCH;
 
@@ -103,7 +115,10 @@ function updateMap(selectedYear) {
             projection: {
                 type: 'mercator'
             }
-        }
+        },
+        width: 1000,
+        heigh: 1000,
+        innerHeight:1000
     };
 
 
@@ -125,6 +140,8 @@ function updateMap(selectedYear) {
             )
         }
     });
+    updateCountriesTable(mapValue.sort((a, b) => b.value - a.value).slice(0, 5), "top");
+    updateCountriesTable(mapValue.sort((a, b) => a.value - b.value).slice(0, 5), "bottom");
 }
 var chart;
 function createLineChart(allValues, year, country, countryValues) {
@@ -194,6 +211,26 @@ function createLineChart(allValues, year, country, countryValues) {
         chart.destroy();
     }
     chart = new Chart(ctx, values);
+}
+
+function updateCountriesTable(countryData, sort) {
+    // Update HTML Table
+    let tableBody = document.getElementById(sort+'CountriesTableBody');
+    tableBody.innerHTML = '';
+    countryData.forEach(country => {
+        let row = tableBody.insertRow();
+        let nameCell = row.insertCell(0);
+        let growthCell = row.insertCell(1);
+        var img = document.createElement("img");
+        img.src = "https://flagsapi.com/BE/flat/64.png";
+        img.alt = country.key;
+        img.style.width = "25px"; // Set the width as needed
+        nameCell.appendChild(img);
+        var spanElement = document.createElement("span");
+        spanElement.textContent = country.key;
+        nameCell.appendChild(spanElement);
+        growthCell.innerHTML = country.value.toFixed(2) + '%'; // Format the growth rate
+    });
 }
 
 function updateLineChart(sliderValue) {
