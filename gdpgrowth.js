@@ -114,7 +114,6 @@ function updateMap(selectedYear) {
             return !(x == undefined || isNaN(x.value));
         });
 
-
     var data = [{
         type: 'choropleth',
         locationmode: 'country names',
@@ -122,25 +121,13 @@ function updateMap(selectedYear) {
         z: mapValue.map(d => d.value),
         text: mapValue.map(d => d.key),
         colorscale: customColorScale,
-        colorbar: {
-            title: 'GDP Growth'
-        }
-    }];
-
-
-    var layout = {
-        title: 'Real GDP Growth in ' + selectedYear,
-        geo: {
-            projection: {
-                type: 'mercator'
-            }
-        },
-        width: '1000px',
-        heigh: '1000px',
-        innerHeight: '1000px'
-    };
-
-
+        colorbar: {y: 0.2, x:1.3, yanchor: "bottom", len: 0.5,title: {text: "US states", side: "right"},      
+        xanchor: "right"
+    }}];
+    
+    var layout = {mapbox: {style: "dark", center: {lon: -110, lat: 50}, zoom: 0.8}, 
+    width: 600, height: 800, margin: {t: 0, b: 0}};
+   
     // Update the map
     Plotly.newPlot('gdpgrowth', data, layout);
 
