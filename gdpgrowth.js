@@ -2,6 +2,8 @@ var mapData, country, flag;
 var allValues = {};
 var baseUrl;
 var mac = false;
+var chart;
+var clickedCountry;
 var missingFlags = {
     "Cabo Verde": "CV",
     "Lao P.D.R.": "LA",
@@ -68,28 +70,40 @@ Promise.all([mapFetch, countryFetch, flag])
             throw new Error(`Data errer`);
         }
         country = country.countries;
-
-        updateMap("1980");
-        document.getElementById('yearSlider').value = "1980";
-        Object.keys(mapData).forEach(
-            function (x) {
-                if (country[x]) {
-                    Object.keys(mapData[x]).forEach(
-                        function (y) {
-                            allValues[y] = parseFloat(allValues[y] == undefined ? 0 : allValues[y]) + parseFloat(mapData[x][y]);
-                        }
-                    )
-                }
-            }
-        );
-        createLineChart(allValues, "1980");
+        loadPage("1980");
     })
     .catch(error => {
         // Handle errors from either API call
         console.error('Error fetching data:', error);
     });
 
-
+function loadPage(year) {
+    updateMap(year);
+    document.getElementById('yearSlider').value = year;
+    Object.keys(mapData).forEach(
+        function (x) {
+            if (country[x]) {
+                Object.keys(mapData[x]).forEach(
+                    function (y) {
+                        allValues[y] = parseFloat(allValues[y] == undefined ? 0 : allValues[y]) + parseFloat(mapData[x][y]);
+                    }
+                )
+            }
+        }
+    );
+    if (clickedCountry == undefined) {
+        createLineChart(allValues, year);
+    } else {
+        Object.keys(country).forEach(
+            function (x) {
+                if (country[x].label == clickedCountry) {
+                    createLineChart(allValues, year, clickedCountry, mapData[x])
+                    return;
+                }
+            }
+        )
+    }
+}
 
 function updateMap(selectedYear) {
     console.log("selectedYearUpdateMAP", selectedYear);
@@ -121,13 +135,17 @@ function updateMap(selectedYear) {
         z: mapValue.map(d => d.value),
         text: mapValue.map(d => d.key),
         colorscale: customColorScale,
-        colorbar: {y: 0.2, x:1.3, yanchor: "bottom", len: 0.5,title: {text: "US states", side: "right"},      
-        xanchor: "right"
-    }}];
+        colorbar: {
+            y: 0.1, x: 1.1, yanchor: "bottom", len: .8, title: { text: "GDP Growth Scale", side: "right" },
+            xanchor: "right"
+        }
+    }];
     
-    var layout = {mapbox: {style: "dark", center: {lon: -110, lat: 50}, zoom: 0.8}, 
-    width: 600, height: 800, margin: {t: 0, b: 0}};
-   
+    var layout = {        
+        mapbox: { style: "dark", center: { lon: -110, lat: 50 }, zoom: 1.5 },
+        width: 1100, height: 600, margin: { t: 0, b: 0 }
+    };
+    document.getElementById('header').innerHTML = 'Real GDP Growth in ' + selectedYear;
     // Update the map
     Plotly.newPlot('gdpgrowth', data, layout);
 
@@ -135,7 +153,7 @@ function updateMap(selectedYear) {
     document.getElementById('gdpgrowth').on('plotly_click', function (eventData) {
         if (eventData.points.length > 0) {
             // Extract the clicked country name
-            const clickedCountry = eventData.points[0].location;
+            clickedCountry = eventData.points[0].location;
             Object.keys(country).forEach(
                 function (x) {
                     if (country[x].label == clickedCountry) {
@@ -149,7 +167,7 @@ function updateMap(selectedYear) {
     updateCountriesTable(mapValue.sort((a, b) => b.value - a.value).slice(0, 5), "top");
     updateCountriesTable(mapValue.sort((a, b) => a.value - b.value).slice(0, 5), "bottom");
 }
-var chart;
+
 function createLineChart(allValues, year, country, countryValues) {
 
     const ctx = document.getElementById('myChart').getContext('2d');
@@ -190,8 +208,8 @@ function createLineChart(allValues, year, country, countryValues) {
             onClick: function (event, elements) {
                 if (elements.length > 0) {
                     const index = elements[0].index;
-                    const value = allValues[Object.keys(allValues)[index]];
-                    console.log('Clicked on data point:', value);
+                    const value = Object.keys(allValues)[index];
+                    loadPage(value);
                 }
             },
         },
