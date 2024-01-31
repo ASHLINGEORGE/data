@@ -19158,16 +19158,21 @@
             }
         ];
 
-        const bubbleChartData = {
-            datasets: [{
-                label: 'Countries',
-                data: data.map(item => ({
-                    x: item.gdp_percapita,
+        
+        var bubbleData = data.map(item => ({
+                    x: item["GDP Per Capita"],
                     y: item.poverty_rate,
                     r: item.poverty_line * 5, // Adjusted for visibility
                     country: item.country,
                     year: item.year
-                })),
+                }))
+                .filter(item => item.year == "2018")
+                .sort((a, b) => b.y - a.y).slice(0, 30);
+
+        const bubbleChartData = {
+            datasets: [{
+                label: 'Countries',
+                data: bubbleData,
                 backgroundColor: 'rgba(255, 99, 132, 0.5)'
             }]
         };
@@ -19200,8 +19205,8 @@
                         }
                     }
                 }
-            }
-        });
+            },        
+    });
 
         const lineChartPopup = document.getElementById('lineChartPopup');
         const lineChartCtx = document.getElementById('lineChart').getContext('2d');
@@ -19243,7 +19248,7 @@
             lineChart.data.labels = countryData.map(item => item.year);
             lineChart.data.datasets.push({
                 label: `GDP of ${countryData[0]?.country || 'Selected Country'}`,
-                data: countryData.map(item => item.gdp_percapita),
+                data: countryData.map(item => item["GDP Per Capita"]),
                 borderColor: 'blue',
                 backgroundColor: 'rgba(0, 0, 255, 0.2)',
                 borderWidth: 2,
@@ -19256,15 +19261,15 @@
         bubbleChartCtx.canvas.addEventListener('mousemove', (e) => {
             const hoveredBubble = bubbleChart.getElementsAtEventForMode(e, 'nearest', { intersect: true }, false)[0];
             if (hoveredBubble) {
-                const selectedCountryData = data.filter(item => item.country === hoveredBubble.element.options.country);
+                const selectedCountryData = data.filter(item => item.country === bubbleData[hoveredBubble.index].country);
                 updateLineChart(selectedCountryData);
 
                 // Get the bounding rectangle of the canvas to calculate the position correctly
                 const canvasRect = bubbleChartCtx.canvas.getBoundingClientRect();
 
                 // Adjust the position of the popup. You might need to tweak the offsets
-                lineChartPopup.style.left = `${canvasRect.left + e.clientX - 200}px`; // Adjusted for the width of the popup
-                lineChartPopup.style.top = `${canvasRect.top + window.scrollY + e.clientY - lineChartPopup.offsetHeight - 20}px`; // Adjusted for the height of the popup
+                lineChartPopup.style.left = `${e.clientX - 400}px`; // Adjusted for the width of the popup
+                lineChartPopup.style.top = `${e.clientY - lineChartPopup.offsetHeight + 250}px`; // Adjusted for the height of the popup
                 lineChartPopup.style.display = 'block';
             } else {
                 lineChartPopup.style.display = 'none';
