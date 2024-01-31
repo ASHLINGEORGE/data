@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Bubble Chart with Hover Line Chart</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        #chart-container {
+            position: relative;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        #bubbleChart {
+            position: absolute;
+            left: 0;
+            top: 0;
+        }
+        #lineChartPopup {
+            position: absolute;
+            display: none;
+            background-color: white;
+            border: 1px solid #ccc;
+            padding: 10px;
+            z-index: 1;
+        }
+    </style>
+</head>
+<body>
+    <div id="chart-container">
+        <canvas id="bubbleChart"></canvas>
+        <div id="lineChartPopup">
+            <canvas id="lineChart"></canvas>
+        </div>
+    </div>
+
+    <script>
+        // Sample data
+        const data = [
+            {
+                "country": "Ukraine",
+                "code": "UA",
+                "year": 2006,
+                "poverty_line": 2.15,
+                "poverty_rate": 0.1604521381,
+                "gdp_percapita": 12259.158
+            },
+            {
+                "country": "Uruguay",
+                "code": "UY",
+                "year": 2007,
+                "poverty_line": 2.15,
+                "poverty_rate": 0.3809727801,
+                "gdp_percapita": 16166.421
+            },
+            {
+                "country": "United States",
+                "code": null,
+                "year": 1969,
+                "poverty_line": 2.15,
+                "poverty_rate": 0.4991601045,
+                "gdp_percapita": null
+            },
+            {
+                "country": "Zimbabwe",
+                "code": "ZW",
+                "year": 2019,
+                "poverty_line": 2.15,
+                "poverty_rate": 39.7545332282,
+                "gdp_percapita": 2203.3967
+            }
+        ];
+        // Create the bubble chart with axes
+        const bubbleChartData = {
+            datasets: [{
+                label: 'Countries',
+                data: data.map(item => ({
+                    x: item.gdp_percapita,
+                    y: item.poverty_rate,
+                    r: item.poverty_line,
+                    country: item.country,
+                    year: item.year
+                })),
+                backgroundColor: 'rgba(255, 0, 0, 0.5)'
+            }]
+        };
+
+        const bubbleChartCtx = document.getElementById('bubbleChart').getContext('2d');
+        const bubbleChart = new Chart(bubbleChartCtx, {
+            type: 'scatter',
+            data: bubbleChartData,
+            options: {
+                // ... (Your options remain the same)
+            }
+        });
+
+        // Create the line chart
+        const lineChartPopup = document.getElementById('lineChartPopup');
+        const lineChartCtx = document.getElementById('lineChart').getContext('2d');
+        const lineChart = new Chart(lineChartCtx, {
+            type: 'line',
+            data: {},
+            options: {
+                // ... (Your options remain the same)
+            }
+        });
+
+        // Function to update the line chart with country-specific data
+        function updateLineChart(countryCode) {
+            // Filter data for the selected country
+            const countryData = data.filter(item => item.code === countryCode);
+
+            // Update line chart data
+            lineChart.data = {
+                labels: countryData.map(item => item.year),
+                datasets: [{
+                    label: `GDP of ${countryData[0]?.country || 'Selected Country'}`,
+                    data: countryData.map(item => item.gdp_percapita),
+                    borderColor: 'blue',
+                    backgroundColor: 'rgba(0, 0, 255, 0.2)',
+                    borderWidth: 2
+                }]
+            };
+
+            lineChart.update();
+        }
+
+        // Add mousemove event to show/hide the line chart popup on bubble hover
+        bubbleChartCtx.canvas.addEventListener('mousemove', (e) => {
+            const hoveredBubble = bubbleChart.getElementsAtEventForMode(e, 'nearest', { intersect: true }, false)[0];
+            if (hoveredBubble) {
+                const selectedCountryCode = data[hoveredBubble.index].code;
+
+                // Update line chart for the selected country
+                if (selectedCountryCode) {
+                    updateLineChart(selectedCountryCode);
+
+                    // Set the position of the popup near the hovered bubble
+                    lineChartPopup.style.left = (e.pageX + 10) + 'px';
+                    lineChartPopup.style.top = (e.pageY - lineChartPopup.clientHeight - 10) + 'px';
+                    lineChartPopup.style.display = 'block';
+                }
+            } else {
+                lineChartPopup.style.display = 'none';
+            }
+        });
+
+        bubbleChartCtx.canvas.addEventListener('mouseleave', () => {
+            lineChartPopup.style.display = 'none';
+        });
+    </script>
+</body>
+</html>
