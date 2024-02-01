@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Bubble Chart with Hover Line Chart</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            background-color: rgb(32, 28, 40); /* Set the background color to black */
+            color: white; /* Set the text color to white for better visibility */
+        }
+    
+        #chart-container {
+            position: relative;
+            max-width: 1250px; /* Increase the container's width */
+            max-height: 1250px; /* Increase the container's height */
+            margin: 0 auto;
+        }
+        /* Style for the main title */
+        #mainTitle {
+            text-align: center; /* Center-align the title */
+            font-size: 32px; /* Set the font size of the title */
+            margin-top: 20px; /* Add some top margin to the title */
+            position: absolute;
+            left: 50%; /* Position the title at the horizontal center */
+            transform: translateX(-50%); /* Center the title horizontally */
+            top: 20px; /* Adjust the top value to move the title vertically */
+        }
+        
+        label {
+            position: absolute;
+            left: 1220px;
+            display: block; /* Make the label a block element for proper alignment */
+            margin-bottom: 5px; /* Add a small margin below the label */
+            color: rgb(225, 221, 255); /* Set the label text color */
+            font-size: 25px; /* Change the font size of the label */
+            top: 140px;
+        }
+
+        /* Style the dropdown/select element */
+        #selDataset {
+            position: absolute; /* Add this line */
+            left: 1200px;
+            width: 200px; /* Set the width of the dropdown */
+            padding: 10px; /* Add some padding to the dropdown */
+            font-size: 16px; /* Set the font size of the text */
+            border: 2px solid rgb(160, 111, 202); /* Add a border with white color */
+            background-color: rgb(50, 50, 50); /* Set the background color */
+            color: #6f786d; /* Set the text color */
+            border-radius: 5px;
+            top: 170px; /* Adjust the top value to move the dropdown down */
+        }
+
+        /* Style the dropdown options */
+        #selDataset option {
+            background-color: rgb(50, 50, 50); /* Set the background color of options */
+            color: red; /* Set the text color of options to red */
+            font-size: 16px; /* Set the font size of options */
+        }
+
+        #bubbleChart {
+            position: absolute;
+            left: -90px;
+            top: 10px; /* Adjust the top value to move the chart down */
+            width: 1000px; /* Increase the width of the chart */
+            height: 1000px; /* Increase the height of the chart */
+        }
+    
+        #lineChartPopup {
+            width: 400px;
+            height: 300px;
+            position: absolute;
+            display: none;
+            background-color: rgb(0, 0, 0);
+            border: 1px solid #ccc;
+            padding: 10px;
+            z-index: 10;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+    
+        #lineChart {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Style for the main title */
+        #mainTitle {
+            text-align: right; /* Center-align the title */
+            position: absolute;
+            left: 495px;
+            font-size: 32px; /* Set the font size of the title */
+            margin-top: 15px; /* Add some top margin to the title */
+        }
+    </style>
+</head>
+<body>
+    <!-- Main Title -->
+    <h1 id="mainTitle">Understanding Human Development Index (HDI) From 1990 to 2022</h1>
+
+    <!-- Paragraph below the main title -->
+    <p style="text-align: center; font-size: 18px; margin-left: -500px; margin-top: 80px;">
+        The Human Development Index (HDI) measures human well-being in terms of health, education, and living standards.
+    </p>
+    
+    <!-- HTML dropdown/select element -->
+    <label for="selDataset">Select a Year</label>
+    <select id="selDataset" onchange="loadPage(this.value)"></select>
+
+    
+    <div id="chart-container">
+        <canvas id="bubbleChart"></canvas>
+        <div id="lineChartPopup">
+            <canvas id="lineChart"></canvas>
+        </div>
+    </div>
+
+    <script src="hdi.js"></script>
+</body>
+</html>

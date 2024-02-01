@@ -1,0 +1,30 @@
+/* Style the tabs */
+.tabs {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: space-around;
+    background-color: #f0f0f0;
+}
+
+.tabs li {
+    margin: 0;
+    padding: 10px 20px;
+    cursor: pointer;
+    border: 1px solid #ccc;
+    border-radius: 5px 5px 0 0;
+}
+
+/* Style the tab content */
+.tab-content .tab-pane {
+    display: none;
+    padding: 20px;
+    background-color: #fff;
+    border: 1px solid #ccc;
+    border-radius: 0 0 5px 5px;
+}
+
+.tab-content .tab-pane.show {
+    display: block;
+}

@@ -38,7 +38,7 @@ var mapFetch = fetch(baseUrl + encodeURIComponent('https://www.imf.org/external/
         // Parse the response as JSON
         return response.json();
     });
-var flag = fetch('https://gist.githubusercontent.com/DmytroLisitsyn/1c31186e5b66f1d6c52da6b5c70b12ad/raw/2bc71083a77106afec2ec37cf49d05ee54be1a22/country_dial_info.json')
+var flag = fetch(baseUrl + encodeURIComponent('https://gist.githubusercontent.com/DmytroLisitsyn/1c31186e5b66f1d6c52da6b5c70b12ad/raw/2bc71083a77106afec2ec37cf49d05ee54be1a22/country_dial_info.json'))
     .then(response => {
         // Check if the request was successful (status code 200)
         if (!response.ok) {
@@ -221,6 +221,8 @@ function createLineChart(allValues, year, country, countryValues) {
             label: country,
             backgroundColor: 'rgba(255, 0, 0, 0.7)',
             borderColor: 'rgba(250, 176, 7, 0.73)',
+            borderWidth: 1,
+            borderRadius: 50,
             data: Object.values(countryValues),
             yAxisID: 'y-axis-2',
         });
